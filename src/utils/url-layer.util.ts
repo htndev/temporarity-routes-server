@@ -1,4 +1,4 @@
-import { Placeholder } from './../constants/common.constant';
+import { Placeholder } from '../constants/common.constant';
 
 interface URLSchema {
   part: string;

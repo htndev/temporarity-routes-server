@@ -7,15 +7,15 @@ import {
   Boxed,
   HttpMethod,
   WorkspaceRouteResponseType,
-} from './../../constants/common.constant';
-import { transformObjectId } from './../../utils/db.util';
+} from '../../constants/common.constant';
+import { transformObjectId } from '../../utils/db.util';
 import {
   buildRoutePath,
   buildRoutePattern,
   isSuitableRoute,
   Route,
-} from './../../utils/routes.util';
-import { URLLayer } from './../../utils/url-layer.util';
+} from '../../utils/routes.util';
+import { URLLayer } from '../../utils/url-layer.util';
 import { BaseRepository } from './base.repository';
 
 @Injectable()

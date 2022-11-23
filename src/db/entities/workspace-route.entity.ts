@@ -1,5 +1,5 @@
 import { Column, Entity, Index, ObjectID } from 'typeorm';
-import { HttpMethod } from './../../constants/common.constant';
+import { HttpMethod } from '../../constants/common.constant';
 import { BaseEntity } from './base.entity';
 
 @Entity({ name: 'workspace_routes' })

@@ -1,7 +1,7 @@
 import {
   ContentType,
   WorkspaceRouteResponseType,
-} from './../../constants/common.constant';
+} from '../../constants/common.constant';
 import { Column, Entity, ObjectID } from 'typeorm';
 import { BaseEntity } from './base.entity';
 

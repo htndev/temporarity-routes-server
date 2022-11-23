@@ -8,7 +8,7 @@ import { WorkspaceRouteRepository } from '../db/repositories/workspace-route.rep
 import { WorkspaceRepository } from '../db/repositories/workspace.repository';
 import { GeneratorProvider } from '../providers/generator.provider';
 import { provideCustomRepository } from '../utils/db.util';
-import { TemporarityApiKeyGuard } from './../guards/temporarity-api-key.guard';
+import { TemporarityApiKeyGuard } from '../guards/temporarity-api-key.guard';
 import { RoutesController } from './routes.controller';
 import { RoutesService } from './routes.service';
 
