@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { RequestValidationProvider } from './../providers/request-validation.provider';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { IncomingMessage } from 'http';
 import * as https from 'https';
@@ -14,6 +19,8 @@ import { WorkspaceRouteRepository } from '../db/repositories/workspace-route.rep
 import { WorkspaceRepository } from '../db/repositories/workspace.repository';
 import { GeneratorProvider } from '../providers/generator.provider';
 import { redirect } from '../utils/redirect.util';
+import { WorkspaceRouteAuthorizationRepository } from './../db/repositories/workspace-route-authorization.repository';
+import { Strategy } from '../domains/request-authorization';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mimetype = require('mime-types');
 
@@ -25,14 +32,13 @@ export class RoutesService {
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly workspaceRouteRepository: WorkspaceRouteRepository,
     private readonly workspaceRouteResponseRepository: WorkspaceRouteResponseRepository,
+    private readonly workspaceRouteAuthorizationRepository: WorkspaceRouteAuthorizationRepository,
     private readonly generatorProvider: GeneratorProvider,
+    private readonly requestValidationProvider: RequestValidationProvider,
   ) {}
 
   async incomingRequest({
     slug,
-    query,
-    body,
-    headers,
     request,
     method,
     response,
@@ -46,6 +52,7 @@ export class RoutesService {
     response: Response;
   }) {
     const workspace = await this.workspaceRepository.getWorkspaceBySlug(slug);
+
     const incomingRoute = request.params[0];
     const routes = await this.workspaceRouteRepository.getRouteByPath(
       workspace._id,
@@ -57,21 +64,45 @@ export class RoutesService {
       return this.notFoundError(incomingRoute, method);
     }
 
+    let route: WorkspaceRoute;
     const [routeA, routeB] = routes;
 
     if (routeA && !routeB) {
-      return this.buildResponse(routeA, response);
+      route = routeA;
+    } else if (routeA.methods.includes(HttpMethod.ALL) && routeB) {
+      route = routeB;
+    } else {
+      route = routeA;
     }
 
-    if (routeA.methods.includes(HttpMethod.ALL) && routeB) {
-      return this.buildResponse(routeB, response);
+    let routeAuthorization =
+      await this.workspaceRouteAuthorizationRepository.findOne({
+        where: { routeId: route._id },
+      });
+
+    if (!routeAuthorization) {
+      routeAuthorization = this.workspaceRouteAuthorizationRepository.create({
+        routeId: route._id,
+        strategy: Strategy.NONE,
+      });
+
+      await routeAuthorization.save();
     }
 
-    if (routeB.methods.includes(HttpMethod.ALL) && routeA) {
-      return this.buildResponse(routeA, response);
+    if (routeAuthorization.strategy !== Strategy.NONE) {
+      const isValidRequest =
+        await this.requestValidationProvider.validateRequest(
+          routeAuthorization.strategy,
+          routeAuthorization.payload,
+          request,
+        );
+
+      if (!isValidRequest) {
+        throw new UnauthorizedException('Unauthorized');
+      }
     }
 
-    return this.buildResponse(routeA, response);
+    return this.buildResponse(route, response);
   }
 
   private async buildResponse(route: WorkspaceRoute, response: Response) {

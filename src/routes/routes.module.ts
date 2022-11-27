@@ -8,7 +8,9 @@ import { WorkspaceRouteRepository } from '../db/repositories/workspace-route.rep
 import { WorkspaceRepository } from '../db/repositories/workspace.repository';
 import { GeneratorProvider } from '../providers/generator.provider';
 import { provideCustomRepository } from '../utils/db.util';
-import { TemporarityApiKeyGuard } from '../guards/temporarity-api-key.guard';
+import { WorkspaceRouteAuthorization } from './../db/entities/workspace-route-authorization.entity';
+import { WorkspaceRouteAuthorizationRepository } from './../db/repositories/workspace-route-authorization.repository';
+import { RequestValidationProvider } from './../providers/request-validation.provider';
 import { RoutesController } from './routes.controller';
 import { RoutesService } from './routes.service';
 
@@ -18,17 +20,23 @@ import { RoutesService } from './routes.service';
       Workspace,
       WorkspaceRoute,
       WorkspaceRouteResponse,
+      WorkspaceRouteAuthorization,
     ]),
   ],
   controllers: [RoutesController],
   providers: [
     RoutesService,
     GeneratorProvider,
+    RequestValidationProvider,
     provideCustomRepository(Workspace, WorkspaceRepository),
     provideCustomRepository(WorkspaceRoute, WorkspaceRouteRepository),
     provideCustomRepository(
       WorkspaceRouteResponse,
       WorkspaceRouteResponseRepository,
+    ),
+    provideCustomRepository(
+      WorkspaceRouteAuthorization,
+      WorkspaceRouteAuthorizationRepository,
     ),
   ],
 })
